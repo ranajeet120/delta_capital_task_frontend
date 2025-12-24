@@ -1,61 +1,108 @@
-import { useState } from "react";
-import { Button, Container, Typography, Box } from "@mui/material";
+import { useRef, useState } from "react";
 import axios from "axios";
+import "./App.css";
+import file_img from "./assets/file_img.png";
+import project_icon from "./assets/project_icon.png";
+import useStyles from "./AppStyles";
 
-export default function App() {
+const App = () => {
   const [file, setFile] = useState<Blob | null>(null);
+  const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [signedPdf, setSignedPdf] = useState<string | null>(null);
+  const ref = useRef(null);
+  const classes = useStyles();
 
   const uploadPdf = async () => {
-    const formData = new FormData();
-    formData.append("pdf", file as Blob);
+    try {
+      const formData = new FormData();
+      formData.append("pdf", file as Blob);
 
-    const res = await axios.post("http://localhost:5001/sign", formData, {
-      responseType: "blob",
-    });
+      const res = await axios.post("https://delta-capital-task-backend.onrender.com/sign", formData, {
+        responseType: "blob",
+      });
+      console.log("res", res);
 
-    const blob = new Blob([res.data], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    setSignedPdf(url);
+      if (res.status === 200 || res.status === 201) {
+        const blob = new Blob([res.data], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        setSignedPdf(url);
+        alert("Signed PDF generated successfully.\n Scroll down for preview.")
+      } else {
+        alert("Something went wrong!!");
+      }
+    } catch (err) {
+      console.log("err", err);
+      alert("Something went wrong!!");
+    }
   };
 
   return (
-    <Container maxWidth="sm">
-      <Box sx={{ textAlign: "center", mt: 4 }}>
-        <Typography variant="h6">Upload PDF for Signing</Typography>
+    <div className={classes.mainContainer}>
+      <div className={classes.headerContainer}>
+        <span className={classes.headerText}>
+          Sample Project By Roni Biswas
+        </span>
+        <img src={project_icon} className={classes.headerIconStyle} />
+      </div>
+
+      <div className={classes.bodyContainer}>
+        <span className={classes.headingText}>Upload PDF for Sign</span>
+
+        {fileUrl ? (
+          <PdfViewer pdfUrl={fileUrl} title="Selected PDF" />
+        ) : (
+          <div className={classes.buttonContainer}>
+            <img src={file_img} className={classes.fileIconStyle} />
+            <input
+              type="button"
+              onClick={() => ref.current.click()}
+              value="Upload From Device"
+              className={classes.buttonStyle}
+              style={{ marginTop: "5%" }}
+            />
+          </div>
+        )}
 
         <input
+          ref={ref}
+          hidden
           type="file"
           accept="application/pdf"
           onChange={(e) => {
             const selectedFile = e.target.files?.[0];
             if (selectedFile) {
               setFile(selectedFile);
+              setFileUrl(URL.createObjectURL(selectedFile));
             }
           }}
-          style={{ marginTop: 20 }}
+          multiple={false}
+        />
+        <input
+          type="button"
+          onClick={uploadPdf}
+          value="Generate Sign PDF"
+          className={classes.buttonStyle}
         />
 
-        <Box mt={2}>
-          <Button
-            variant="contained"
-            fullWidth
-            disabled={!file}
-            onClick={uploadPdf}
-          >
-            Upload & Sign
-          </Button>
-        </Box>
-
-        {signedPdf && (
-          <iframe
-            src={signedPdf}
-            width="100%"
-            height="600px"
-            title="Signed PDF"
-          />
-        )}
-      </Box>
-    </Container>
+        {signedPdf && <PdfViewer pdfUrl={signedPdf} title="Signed PDF" />}
+      </div>
+    </div>
   );
-}
+};
+
+export default App;
+
+const PdfViewer = ({
+  pdfUrl,
+  title,
+}: {
+  pdfUrl: string | undefined;
+  title: string;
+}) => {
+  const classes = useStyles();
+  return (
+    <div className={classes.pdfContainer}>
+      <iframe src={pdfUrl} width="100%" height="100%" title={title} />;
+    </div>
+  );
+};
