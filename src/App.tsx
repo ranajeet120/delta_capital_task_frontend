@@ -96,6 +96,21 @@ const App = () => {
 
 export default App;
 
+// const PdfViewer = ({
+//   pdfUrl,
+//   title,
+// }: {
+//   pdfUrl: string | undefined;
+//   title: string;
+// }) => {
+//   const classes = useStyles();
+//   return (
+//     <div className={classes.pdfContainer}>
+//       <iframe src={pdfUrl} width="100%" height="100%" title={title} />;
+//     </div>
+//   );
+// };
+
 const PdfViewer = ({
   pdfUrl,
   title,
@@ -104,9 +119,37 @@ const PdfViewer = ({
   title: string;
 }) => {
   const classes = useStyles();
+
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(
+    navigator.userAgent
+  );
+
+  if (!pdfUrl) return null;
+
+  if (isMobile) {
+    return (
+      <div className={classes.pdfContainer}>
+        <a
+          href={pdfUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={classes.buttonStyle}
+        >
+          Open PDF
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className={classes.pdfContainer}>
-      <iframe src={pdfUrl} width="100%" height="100%" title={title} />;
+      <iframe
+        src={pdfUrl}
+        width="100%"
+        height="100%"
+        title={title}
+      />
     </div>
   );
 };
+
