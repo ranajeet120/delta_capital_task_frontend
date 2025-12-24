@@ -9,7 +9,7 @@ const App = () => {
   const [file, setFile] = useState<Blob | null>(null);
   const [fileUrl, setFileUrl] = useState<string | null>(null);
   const [signedPdf, setSignedPdf] = useState<string | null>(null);
-  const ref = useRef(null);
+  const ref = useRef<HTMLInputElement | null>(null);
   const classes = useStyles();
 
   const uploadPdf = async () => {
@@ -17,16 +17,20 @@ const App = () => {
       const formData = new FormData();
       formData.append("pdf", file as Blob);
 
-      const res = await axios.post("https://delta-capital-task-backend.onrender.com/sign", formData, {
-        responseType: "blob",
-      });
+      const res = await axios.post(
+        "https://delta-capital-task-backend.onrender.com/sign",
+        formData,
+        {
+          responseType: "blob",
+        }
+      );
       console.log("res", res);
 
       if (res.status === 200 || res.status === 201) {
         const blob = new Blob([res.data], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         setSignedPdf(url);
-        alert("Signed PDF generated successfully.\n Scroll down for preview.")
+        alert("Signed PDF generated successfully.\n Scroll down for preview.");
       } else {
         alert("Something went wrong!!");
       }
@@ -55,7 +59,7 @@ const App = () => {
             <img src={file_img} className={classes.fileIconStyle} />
             <input
               type="button"
-              onClick={() => ref.current.click()}
+              onClick={() => ref.current?.click()}
               value="Upload From Device"
               className={classes.buttonStyle}
               style={{ marginTop: "5%" }}
